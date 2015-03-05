@@ -34,12 +34,14 @@ Sessions can be saved as a `.mpc` file and later exported to a final `.xls`
 spreadsheet to start the next process in the AMPC work flow.
 
 # Dependencies
-RevAssign requires Python 2.7 and a few third party python libraries:
+RevAssign requires Python 2.7 and a few third party python libraries.  At this
+time the version used are:
 
-    PyQt4
-    sip (required by PyQt4)
-    xlrd (for reading .xls files)
-    xlwt (for writing .xls files)
+    Qt 4.7.4
+    PyQt4 4.8.5
+    sip 4.15.2 (required by PyQt4)
+    xlrd 0.9.2 (for reading .xls files)
+    xlwt 0.7.5 (for writing .xls files)
 
 For OSX these can be installed using MacPorts.  For Ubuntu Linux they can
 be installed using apt-get.  RevAssign also works with
