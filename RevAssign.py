@@ -95,9 +95,9 @@ class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
         # if contents passed then decorate for sorting
         self.dlist = []
         self.dlist.append(int(parent[0])) # member #
-        for i in xrange(1,12):
+        for i in range(1,12):
             self.dlist.append(str(parent[i]))
-        for i in xrange(12,18):
+        for i in range(12,18):
             self.dlist.append(int(parent[i]))
         self.dlist.append(str(parent[18]))
 
@@ -112,11 +112,11 @@ class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
         # set columns to be colorized based on sort
         self.totalCol = self.parent.ui.revlist.columnCount()
         self.firstcol = 1 # zero column doesn't work for some reason
-        self.colRange = range(self.firstcol,self.totalCol)
+        self.colRange = list(range(self.firstcol,self.totalCol))
 
         # choice column range
         #   -choices are in columns 12,13,14,15,16
-        self.choices = range(12,17)
+        self.choices = list(range(12,17))
 
         # current color
         #   0:white, 1:light grey, ... 5:dark grey
@@ -140,7 +140,7 @@ class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
         self.brush = self.background(1)
 
         #for col in self.colRange:
-        for col in xrange(0,self.totalCol):
+        for col in range(0,self.totalCol):
             self.setBackground(col,self.brush)
 
 
@@ -289,7 +289,7 @@ class Main(QtGui.QMainWindow):
         self.disableListUpdates()
     
         # init the list widget for reviewer info
-        for k in self.chair.reviewers.iterkeys():
+        for k in self.chair.reviewers.keys():
 
             # create item from row info based on key
             item = self.createRevItem(k)
@@ -304,7 +304,7 @@ class Main(QtGui.QMainWindow):
         self.ui.revlist.setItemSelected(item,1)
 
         # init the list widget for category info
-        for k in self.chair.categories.iterkeys():
+        for k in self.chair.categories.keys():
 
             # create item from row info
             item = self.createCatItem(k)
@@ -402,7 +402,7 @@ class Main(QtGui.QMainWindow):
         self.update_status('clearing memory... (reviewers)')
         st = time.time()
         self.removeItemsFromList(self.ui.revlist,self.listItemsInTree(self.ui.revlist))
-        print "revlist removal time: "+str(time.time()-st)
+        print("revlist removal time: "+str(time.time()-st))
     
         self.enableListUpdates()
 
@@ -527,7 +527,7 @@ class Main(QtGui.QMainWindow):
         self.setHlght_AbsOverload(item)
 
     def removeItemsFromList(self,tree,inlist):
-        print 'itemcnt:'+str(tree.topLevelItemCount())
+        print('itemcnt:'+str(tree.topLevelItemCount()))
         cnt = tree.topLevelItemCount()
         tree.clear()
         #for i in range(0,cnt):
@@ -566,7 +566,7 @@ class Main(QtGui.QMainWindow):
         # only care if checkbox has changed
         if col == 0:
 
-            print "catlist changed"
+            print("catlist changed")
 
             # if it was unchecked, then re-check it
             if not cur.checkState(0):
@@ -621,7 +621,7 @@ class Main(QtGui.QMainWindow):
                     st = time.time()
                     self.update_status(sortMsg)
                     self.ui.revlist.sortItems(self.ui.revlist.header().sortIndicatorSection(),self.ui.revlist.header().sortIndicatorOrder())
-                    print "     -sort time: "+str(time.time()-st)
+                    print("     -sort time: "+str(time.time()-st))
 
                     # select first item 
                     #cur_item = self.ui.revlist.itemAt(0,0)
@@ -631,7 +631,7 @@ class Main(QtGui.QMainWindow):
                     # redraw color
                     st = time.time()
                     self.refreshItemColor_rev()
-                    print "     -re-color time: "+str(time.time()-st)
+                    print("     -re-color time: "+str(time.time()-st))
 
                 # allow update of display
                 #self.enableListUpdates()
@@ -661,7 +661,7 @@ class Main(QtGui.QMainWindow):
                 self.cur_revkey = str(items[0].text(0))
 
     def revlist_header_sortIndicatorChanged(self):#,section=None,order=None):
-        print "revlist_header_sortIndicatorChanged triggered"
+        print("revlist_header_sortIndicatorChanged triggered")
         #print section
         #print order
 
@@ -683,11 +683,11 @@ class Main(QtGui.QMainWindow):
 
             # for debugging
             if str(cur.text(0)) == self.cur_revkey:
-                print "spacebar used to select or mouse on highlighted row"
+                print("spacebar used to select or mouse on highlighted row")
             else:
                 # shouldn't this always be the case?
                 self.cur_revkey = str(cur.text(0))
-                print "mouse checked non-highlighted row"
+                print("mouse checked non-highlighted row")
 
             # if it IS checked
             if cur.checkState(0):
@@ -696,21 +696,21 @@ class Main(QtGui.QMainWindow):
                 try:
                     self.chair.categories[self.cur_catkey]
                 except:
-                    print "ERROR: please choose a category"
+                    print("ERROR: please choose a category")
                     return
 
                 # test reviewer selection
                 try:
                     self.chair.reviewers[self.cur_revkey]
                 except:
-                    print "ERROR: please choose a reviewer"
+                    print("ERROR: please choose a reviewer")
                     return
 
-                print "item checked, col:"+str(col)
+                print("item checked, col:"+str(col))
                 self.chair.addRev(self.cur_revkey,self.cur_catkey)
 
             else:
-                print "item not checked, col:"+str(col)
+                print("item not checked, col:"+str(col))
                 self.chair.removeRev(self.cur_revkey,self.cur_catkey)
 
             # refresh row data
@@ -755,10 +755,10 @@ class Main(QtGui.QMainWindow):
         item_r = self.cur_cat_item
         # set # of assigned reviewers
         item_r.setText(3,self.chair.categories[self.cur_catkey][3])
-        print item_r.text(3)
+        print(item_r.text(3))
         # assigned reviewers
         item_r.setText(5,str(self.chair.categories[self.cur_catkey][5]))
-        print item_r.text(5)
+        print(item_r.text(5))
 
         # display rev
         #item_c = self.ui.revlist.selectedItems()[0]
@@ -766,11 +766,11 @@ class Main(QtGui.QMainWindow):
         # set # of assigned reviewers
         item_c.setText(17,self.chair.reviewers[self.cur_revkey][17])
         item_c.dlist[17] = int(self.chair.reviewers[self.cur_revkey][17])
-        print item_c.text(17)
+        print(item_c.text(17))
         # assigned reviewers
         item_c.setText(18,str(self.chair.reviewers[self.cur_revkey][18]))
         item_c.dlist[18] = str(self.chair.reviewers[self.cur_revkey][18])
-        print item_c.text(18)
+        print(item_c.text(18))
 
         # update color after tables have been modified
         self.toggleColor(item_c)
@@ -789,7 +789,7 @@ class Main(QtGui.QMainWindow):
             if str(text).isdigit():
                 self.ui.revlist.setDisabled(True)
                 self.rev_abs_warnThresh = float(text)
-                print "rev_abs_warnThresh set to: "+str(self.rev_abs_warnThresh)
+                print("rev_abs_warnThresh set to: "+str(self.rev_abs_warnThresh))
                 self.refreshItemColor_rev()
                 self.ui.revlist.setDisabled(False)
 
@@ -840,12 +840,12 @@ class Main(QtGui.QMainWindow):
 
         # check if session is already active
         if not self.sessionActive:
-            print "ERROR: no active session to save"
+            print("ERROR: no active session to save")
             return
 
         # open file browser
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Save Session (*.mpc)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.mpc)')
-        print fname
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:
@@ -866,12 +866,12 @@ class Main(QtGui.QMainWindow):
 
         # check if session is already active
         if not self.sessionActive:
-            print "ERROR: no active session to export"
+            print("ERROR: no active session to export")
             return
 
         # open file browser
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Export Session (*.xls)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.xls)')
-        print fname
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:
@@ -887,7 +887,7 @@ class Main(QtGui.QMainWindow):
 
         # open file browser
         fname = QtGui.QFileDialog().getOpenFileName(self, 'Open Session (*.mpc)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.mpc)')
-        print fname
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:
@@ -907,10 +907,10 @@ class Main(QtGui.QMainWindow):
 
         # resize window to saved state
         if self.chair.state:
-            print "restore mainwindow state:"
-            print self.restoreGeometry(self.chair.state[0])
-            print "restore splitter state:"
-            print self.ui.splitter.restoreState(self.chair.state[1])
+            print("restore mainwindow state:")
+            print(self.restoreGeometry(self.chair.state[0]))
+            print("restore splitter state:")
+            print(self.ui.splitter.restoreState(self.chair.state[1]))
 
         # load display
         self.loadItems()
@@ -926,7 +926,7 @@ class Main(QtGui.QMainWindow):
 
         # open file browser
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open Spreadsheet (*.xls)',os.path.expanduser('~/'), filter='AMPC Chair Session (*.xls)')
-        print fname
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:

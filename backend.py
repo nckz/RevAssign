@@ -90,7 +90,7 @@ class AMPCchair_data:
         for i in range(1,12):
             
             # check all chars in each string
-            if type(inlist[i]) == str or type(inlist[i]) == unicode:
+            if type(inlist[i]) == str or type(inlist[i]) == str:
                 cell = []
                 for c in inlist[i]:
                     try:
@@ -123,7 +123,7 @@ class AMPCchair_data:
         try:
             book = xlrd.open_workbook(fn)
         except:
-            print 'ERROR: invalid xls file'
+            print('ERROR: invalid xls file')
             return 1
         sheets = book.sheets()
         self.rev_sheet = sheets[0] # only the first sheet
@@ -147,11 +147,11 @@ class AMPCchair_data:
                 read_cnt += 1
             except:
                 bad_cnt += 1
-                print 'bad_cnt:'+str(bad_cnt)
-                print self.rev_sheet.row_values(i)
+                print('bad_cnt:'+str(bad_cnt))
+                print(self.rev_sheet.row_values(i))
                 #pass # just skip rows with no member number
-        print "REVIEWERS: read:"+str(read_cnt)
-        print "REVIEWERS: unreadable rows:"+str(bad_cnt)
+        print("REVIEWERS: read:"+str(read_cnt))
+        print("REVIEWERS: unreadable rows:"+str(bad_cnt))
         self.reviewers = dict(self.reviewers)
 
         # CATEGORIES
@@ -185,14 +185,14 @@ class AMPCchair_data:
 
                 else:
                     bad_cnt += 1
-                    print self.cat_sheet.row_values(i)
+                    print(self.cat_sheet.row_values(i))
 
             except:
                 # tally non-readable rows
                 bad_cnt += 1
-                print self.cat_sheet.row_values(i)
-        print "CATEGORIES: read:"+str(read_cnt)
-        print "CATEGORIES: unreadable/main-category rows:"+str(bad_cnt)
+                print(self.cat_sheet.row_values(i))
+        print("CATEGORIES: read:"+str(read_cnt))
+        print("CATEGORIES: unreadable/main-category rows:"+str(bad_cnt))
         self.categories = dict(self.categories)
 
 
@@ -208,7 +208,7 @@ class AMPCchair_data:
            the correct number first.
         '''
         # for each reviewer
-        for k,v in self.reviewers.iteritems():
+        for k,v in self.reviewers.items():
             # for each choice
             for choice in v[12:17]:
                 # determine if choice is empty
@@ -387,7 +387,7 @@ class AMPCchair_data:
     def dict2List(self,dict_in):
         '''flatten dictionary elements to string elements in a list'''
         outlist = []
-        for v in dict_in.itervalues():
+        for v in dict_in.values():
             rowlist = []
             # ensure each element of a row is a string
             for i in v:
@@ -439,7 +439,7 @@ class AMPCchair_data:
         try:
             group = pickle.load(fileptr)
         except:
-            print 'ERROR: invalid pickle file'
+            print('ERROR: invalid pickle file')
             fileptr.close()
             return 1
 
@@ -449,8 +449,8 @@ class AMPCchair_data:
         # load data into class
         hdr = group[0]
         if hdr[0] == 'ISMRM AMPC Chair Session':
-            print 'valid ISMRM AMPC Chair Session found'
-            print '\t-file created with version '+str(hdr[1])
+            print('valid ISMRM AMPC Chair Session found')
+            print('\t-file created with version '+str(hdr[1]))
             self.reviewers  = group[1]
             self.categories = group[2]
             if group[0][2] == 'no state info':
@@ -458,7 +458,7 @@ class AMPCchair_data:
             else:
                 self.state = group[0][2] # window state
         else:
-            print "ERROR: the chosen file is not an ISMRM AMPC Chair session"
+            print("ERROR: the chosen file is not an ISMRM AMPC Chair session")
 
         return 0
 

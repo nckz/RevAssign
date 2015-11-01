@@ -59,7 +59,7 @@ static PyObject *lt_py(PyObject *self, PyObject *args, PyObject *keywds)
     int choice_cur = -1;
     int new_color_cur = 0;
     for(int i=12;i<17;i++)
-        if(PyInt_AS_LONG(PyList_GetItem(list1,i)) == cur_catkey_num)
+        if(PyLong_AS_LONG(PyList_GetItem(list1,i)) == cur_catkey_num)
         {
             choice_cur = i;
             new_color_cur = i-11;
@@ -71,7 +71,7 @@ static PyObject *lt_py(PyObject *self, PyObject *args, PyObject *keywds)
     int choice_other = -1;
     int new_color_other = 0;
     for(int i=12;i<17;i++)
-        if(PyInt_AS_LONG(PyList_GetItem(list2,i)) == cur_catkey_num)
+        if(PyLong_AS_LONG(PyList_GetItem(list2,i)) == cur_catkey_num)
         {
             choice_other = i;
             new_color_other = i-11;
@@ -86,9 +86,9 @@ static PyObject *lt_py(PyObject *self, PyObject *args, PyObject *keywds)
             // all numeric comparisons
             if((col == 0 ) || (col == 12) || (col == 13) || 
                (col == 14) || (col == 15) || (col == 16) || (col == 17))
-                out_logic = PyInt_AS_LONG(cur) < PyInt_AS_LONG(other);
+                out_logic = PyLong_AS_LONG(cur) < PyLong_AS_LONG(other);
             else // string comparisons
-                out_logic = strcmp(PyString_AS_STRING(cur),PyString_AS_STRING(other));
+                out_logic = strcmp(PyBytes_AS_STRING(cur),PyBytes_AS_STRING(other));
         }
         else
         {
@@ -113,9 +113,9 @@ static PyObject *lt_py(PyObject *self, PyObject *args, PyObject *keywds)
         // all numeric comparisons
         if((col == 0 ) || (col == 12) || (col == 13) || 
            (col == 14) || (col == 15) || (col == 16) || (col == 17))
-            out_logic = PyInt_AS_LONG(cur) < PyInt_AS_LONG(other);
+            out_logic = PyLong_AS_LONG(cur) < PyLong_AS_LONG(other);
         else // string comparisons
-            out_logic = strcmp(PyString_AS_STRING(cur),PyString_AS_STRING(other));
+            out_logic = strcmp(PyBytes_AS_STRING(cur),PyBytes_AS_STRING(other));
     }
 
     /* pack output arrays */
@@ -133,48 +133,15 @@ static PyObject *lt_py(PyObject *self, PyObject *args, PyObject *keywds)
  * ############################################################## */
 
 
-
-
-/* list of functions to be accessible from python
- */
 static PyMethodDef Methods[] = {
-
-    {"lt",(PyCFunction) lt_py, METH_VARARGS|METH_KEYWORDS, // the string is the python accessible name
-    "Def: (data) = fft(data)\n\n\
-     Brief: fft data in any of six dirs.  The first 1,2 and 3 dirs are threaded.\n\n\
-     INPUT (required)\n\
-     \t data: (NPY array)\n\
-     \t\t KWARGS (optional)\n\
-     \t\t s1...s6: (float) scale factor \n\
-     \t\t n1...n6: (int) dim length\n\
-     \t\t dir: (int) (0:FFTW_FORWARD, 1:FFTW_BACKWARD) (default:0)\n\
-     \t\t measureType: (int) fftw 1:ESTIMATE, 2:MEASURE, 3:PATIENT, 4:EXHAUSTIVE (default:1)\n\
-     \t\t numThreads: (int) (default: 8)\n\
-     \t\t verbosity: (int) >= 0 (default: 0)\n\
-     OUTPUT\n\
-     \t data: (NPY array)\n\
-     "}, // shows up in ipython after ?
-
-    {NULL, NULL, 0, NULL}        /* Sentinel */
+    { "lt", (PyCFunction) lt_py, METH_VARARGS|METH_KEYWORDS, "your ad here" },
+    {__null, __null, 0, __null}
 };
 
-/* init function that is called at 'import' and 'reload'
- */
-PyMODINIT_FUNC initdecutil(void) // <- init<name>
-{
-    PyObject *m;
-    m = Py_InitModule("decutil", Methods); // <- <name>
-    if (m == NULL)
-    return;
+static struct PyModuleDef __moddef = { { { 1, __null }, __null, 0, __null, }, "decutil", __null, -1, Methods };
 
-    /* This little guy requires a unique identifier to be declared
-     * if multiple extensions are going to comprise the extension
-     * module (PY_ARRAY_UNIQUE_SYMBOL).  I don't think this applies
-     * to included kernel sources.
-     *
-     * http://dsnra.jpl.nasa.gov/software/Python/numpydoc/numpy-13.html
-     *
-     * import_array() is needed if any numpy functions are to be called.
-     */
-    //import_array();
-}
+extern "C" PyObject* PyInit_decutil (void) { 
+    PyObject *m; m = PyModule_Create(&__moddef);
+    if (m == __null) return __null;
+    return m; 
+};
