@@ -15,7 +15,6 @@
 """
 __authors__ = ["Nick Zwart","Jim Pipe"]
 __date__   = "2011dec19"
-__version__ = "r3086"
 
 import os
 import sys
@@ -957,11 +956,11 @@ class Main(QtGui.QMainWindow):
 
     def on_actionAbout_triggered(self,checked=None):
         if checked is None: return
-        QtGui.QMessageBox.about(self,"About The AMPC Chair", \
-            "This is the ISMRM AMPC Chair window for assigning reviewers to categories.\n\n"+ \
+        msg = "RevAssign was created to help the ISMRM AMPC Chair assign reviewers to categories.\n\n"+ \
             "\tAuthors: "+str(', '.join(__authors__))+"\n" \
-            "\tDate: "+str(__date__)+"\n" \
-            "\tVersion: "+str(__version__))
+            "\tDate: "+str(__date__)+"\n\n" \
+            "URL: https://github.com/nckz/RevAssign#revassign"
+        mb = QtGui.QMessageBox.about(self, "About RevAssign", msg)
              
     def on_actionWorkflow_triggered(self,checked=None):
         if checked is None: return
