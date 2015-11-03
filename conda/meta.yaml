@@ -20,6 +20,7 @@ requirements:
 
 build:
   number: 1
+  string: py{{ environ['CONDA_PY'] }}
 
 about:
   home: http://gpilab.com

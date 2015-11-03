@@ -1,5 +1,5 @@
 #!/bin/bash
 CHANNEL=nckz
-OUTPUT=`conda build ./ --output`
-conda build ./
+OUTPUT=`CONDA_PY=27 conda build ./ --output`
+CONDA_PY=27 conda build ./
 anaconda upload -u $CHANNEL $OUTPUT --force
