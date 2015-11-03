@@ -3,7 +3,8 @@
 set -x
 set -e
 
-mkdir -p $PREFIX/lib/RevAssign
-cp -R * $PREFIX/lib/RevAssign/
+# copy to site-packages
+mkdir -p $SP_DIR/RevAssign
+cp -R * $SP_DIR/RevAssign/
 
 exit

@@ -1,4 +1,5 @@
 #!/bin/bash
+CHANNEL=nckz
 OUTPUT=`conda build ./ --output`
 conda build ./
-anaconda upload $OUTPUT --force
+anaconda upload -u $CHANNEL $OUTPUT --force
