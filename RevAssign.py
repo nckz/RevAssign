@@ -17,12 +17,14 @@ __authors__ = ["Nick Zwart","Jim Pipe"]
 __date__   = "2011dec19"
 __version__ = "r3086"
 
-import os,sys
+import os
+import sys
 import time
+sys.path.insert(0, '../')
 
 # load c helper module
 try:
-    import decutil
+    from RevAssign import decutil
     sortMsg = 'sorting items...'
     sortType = 0
 except:
@@ -38,10 +40,10 @@ except:
 from PyQt4 import QtCore,QtGui
 
 # Import the compiled UI module
-from windowUi import Ui_MainWindow
+from RevAssign.windowUi import Ui_MainWindow
 
 # Import the backend data containers
-import backend
+from RevAssign import backend
 
 
 # correct the numeric sorting for specified columns of the category list
@@ -957,7 +959,7 @@ class Main(QtGui.QMainWindow):
         if checked is None: return
         QtGui.QMessageBox.about(self,"About The AMPC Chair", \
             "This is the ISMRM AMPC Chair window for assigning reviewers to categories.\n\n"+ \
-            "\tAuthors: "+str(__authors__)+"\n" \
+            "\tAuthors: "+str(', '.join(__authors__))+"\n" \
             "\tDate: "+str(__date__)+"\n" \
             "\tVersion: "+str(__version__))
              
