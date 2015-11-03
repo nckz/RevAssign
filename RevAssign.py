@@ -19,16 +19,15 @@ __date__   = "2011dec19"
 import os
 import sys
 import time
-sys.path.insert(0, '../')
 
 # Import Qt modules
 from PyQt4 import QtCore,QtGui
 
 # Import the compiled UI module
-from RevAssign.windowUi import Ui_MainWindow
+from windowUi import Ui_MainWindow
 
 # Import the backend data containers
-from RevAssign import backend
+import backend
 
 
 # correct the numeric sorting for specified columns of the category list
@@ -971,4 +970,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
