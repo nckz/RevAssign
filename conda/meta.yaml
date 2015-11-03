@@ -1,0 +1,27 @@
+package:
+  name: revassign
+  version: "0.1.0"
+
+source:
+  git_rev: master
+  git_url: https://github.com/nckz/RevAssign.git
+
+requirements:
+  build:
+    - python >=2.7,<3
+    - pyqt >=4,<5
+    - xlrd >=0.9
+    - xlwt >=1
+  run:
+    - python >=2.7,<3
+    - pyqt >=4,<5
+    - xlrd >=0.9
+    - xlwt >=1
+
+build:
+  number: 1
+
+about:
+  home: http://gpilab.com
+  license: BSD
+  summary: "RevAssign - The ISMRM-AMPC reviewer assignment helper software."

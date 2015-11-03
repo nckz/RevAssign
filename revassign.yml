@@ -1,6 +1,0 @@
-name: revassign
-dependencies:
-- pyqt=4.*
-- python=2.7.*
-- xlrd>=0.9
-- xlwt>=1
