@@ -21,20 +21,6 @@ import sys
 import time
 sys.path.insert(0, '../')
 
-# load c helper module
-try:
-    from RevAssign import decutil
-    sortMsg = 'sorting items...'
-    sortType = 0
-except:
-    # no error needed, the methods will just revert to pure python versions
-    sortType = 1
-    sortMsg = 'Py-sorting items...'
-
-# force one type of sort
-#sortType = 1
-#sortMsg = 'Py-sorting items...'
-
 # Import Qt modules
 from PyQt4 import QtCore,QtGui
 
@@ -156,59 +142,50 @@ class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
         if self.parent.cur_catkey and self.parent.rev_sortByChoice:
 
             # regardless of chosen column to sort on, always push common categories to the top
+            # first check current item
+            match_cur = False
+            choice_cur = -1
+            for i in self.choices:
+                if float(self.text(i)) == self.parent.cur_catkey_num:
+                    choice_cur = i
+                    self.new_color = i-11
+                    match_cur = True
+                    break # no need to check the rest
 
-            # use c method if possible
-            if sortType == 0:
-                # c implementation
-                logic, self.new_color, otherItem.new_color = decutil.lt(self.dlist,otherItem.dlist,column,self.parent.cur_catkey_num,sortInd)
-                return logic > 0
+            # second check other item
+            match_other = False
+            choice_other = -1
+            for i in self.choices:
+                if float(otherItem.text(i)) == self.parent.cur_catkey_num:
+                    choice_other = i
+                    otherItem.new_color = i-11
+                    match_other = True
+                    break # no need to check the rest
 
-            # use pure python method instead
-            else:
-                # first check current item
-                match_cur = False
-                choice_cur = -1
-                for i in self.choices:
-                    if float(self.text(i)) == self.parent.cur_catkey_num:
-                        choice_cur = i
-                        self.new_color = i-11
-                        match_cur = True
-                        break # no need to check the rest
+            # if they both have matches then sort by choice
+            if match_cur and match_other:
 
-                # second check other item
-                match_other = False
-                choice_other = -1
-                for i in self.choices:
-                    if float(otherItem.text(i)) == self.parent.cur_catkey_num:
-                        choice_other = i
-                        otherItem.new_color = i-11
-                        match_other = True
-                        break # no need to check the rest
+                if choice_other == choice_cur:
 
-                # if they both have matches then sort by choice
-                if match_cur and match_other:
-
-                    if choice_other == choice_cur:
-
-                            # normal sorting
-                            if column == 0 or column == 12 or column == 13 or column == 14 or column == 15 or column == 16 or column == 17:
-                                return float( self.text(column) ) < float( otherItem.text(column) )
-                            else:
-                                return self.text(column) < otherItem.text(column)
-                    else:
-                        # sort on choice prio
-                        if sortInd == 0:
-                            return choice_cur < choice_other
+                        # normal sorting
+                        if column == 0 or column == 12 or column == 13 or column == 14 or column == 15 or column == 16 or column == 17:
+                            return float( self.text(column) ) < float( otherItem.text(column) )
                         else:
-                            return choice_cur > choice_other
-
-                # if one of them matches then it is the priority
-                if match_cur or match_other:
-                    # always put category sorting on top
-                    if sortInd == 1:
-                        return match_cur < match_other
+                            return self.text(column) < otherItem.text(column)
+                else:
+                    # sort on choice prio
+                    if sortInd == 0:
+                        return choice_cur < choice_other
                     else:
-                        return match_cur > match_other
+                        return choice_cur > choice_other
+
+            # if one of them matches then it is the priority
+            if match_cur or match_other:
+                # always put category sorting on top
+                if sortInd == 1:
+                    return match_cur < match_other
+                else:
+                    return match_cur > match_other
 
         # reset to white
         self.new_color = 0
@@ -260,6 +237,7 @@ class Main(QtGui.QMainWindow):
         self.cur_rev_col = 1
         self.cur_cat_col = 1
 
+        self.sortMsg = 'sorting items...'
 
         # speedups
         #self.ui.catlist.scheduleDelayedItemsLayout()
@@ -336,7 +314,7 @@ class Main(QtGui.QMainWindow):
             self.rev_items.append(cur_item)
 
         # do initial sort based on default column
-        self.update_status(sortMsg)
+        self.update_status(self.sortMsg)
 
         # sort categories first
         self.ui.catlist.sortItems(0,0)
@@ -425,7 +403,7 @@ class Main(QtGui.QMainWindow):
         self.ui.revlist.setDisabled(True)
 
         # status
-        self.update_status(sortMsg)
+        self.update_status(self.sortMsg)
         #cnt = float(self.ui.revlist.topLevelItemCount())
         cnt = len(self.rev_items)
 
@@ -620,7 +598,7 @@ class Main(QtGui.QMainWindow):
                 # initiate sort on current column using current ordering        
                 if self.rev_sortByChoice:
                     st = time.time()
-                    self.update_status(sortMsg)
+                    self.update_status(self.sortMsg)
                     self.ui.revlist.sortItems(self.ui.revlist.header().sortIndicatorSection(),self.ui.revlist.header().sortIndicatorOrder())
                     print "     -sort time: "+str(time.time()-st)
 
