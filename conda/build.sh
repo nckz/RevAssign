@@ -8,6 +8,6 @@ mkdir -p $SP_DIR/RevAssign
 cp -R * $SP_DIR/RevAssign/
 
 # copy launcher
-cp /bin/revassign $PREFIX/bin/
+cp bin/revassign $PREFIX/bin/
 
 exit
