@@ -34,7 +34,7 @@ Sessions can be saved as a `.mpc` file and later exported to a final `.xls`
 spreadsheet to start the next process in the AMPC work flow.
 
 # Install
-The latest app for OS X can be found here: [>Download<](https://github.com/nckz/RevAssign/releases)
+The latest app for OS X can be found in [Releases](https://github.com/nckz/RevAssign/releases).
 
 Alternatively, RevAssign can be installed in Anaconda by running:
 
