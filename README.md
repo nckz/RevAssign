@@ -33,22 +33,11 @@ content). The columns can also be positioned to the user's tastes.
 Sessions can be saved as a `.mpc` file and later exported to a final `.xls`
 spreadsheet to start the next process in the AMPC work flow.
 
-# Dependencies
-RevAssign requires Python 2.7 and a few third party python libraries.  At this
-time the version used are:
+# Install
+RevAssign can be installed in Anaconda by running:
 
-    Qt 4.7.4
-    PyQt4 4.8.5
-    sip 4.15.2 (required by PyQt4)
-    xlrd 0.9.2 (for reading .xls files)
-    xlwt 0.7.5 (for writing .xls files)
+    $ conda install -c https://conda.anaconda.org/nckz revassign
 
-For OSX these can be installed using MacPorts.  For Ubuntu Linux they can
-be installed using apt-get.  RevAssign also works with
-[Anaconda](http://continuum.io/) Python 2.7.
+And then run with:
 
-The main python script for this program is the `RevAssign.py` file.  To
-launch RevAssign with an installed python just type the following at a
-command terminal window (assuming python is in your `PATH`):
-
-    $ python ./RevAssign.py
+    $ revassign
