@@ -5,7 +5,6 @@
    Summary: Backend interface for AMPC Chair person's spreadsheet editing tasks.
 
 """
-
 __authors__ = ["Nick Zwart","Jim Pipe"]
 __date__   = "2011dec19"
 __version__ = "r2832"
@@ -21,6 +20,7 @@ class AMPCchair_data:
     def __init__(self):
         self.rev_sheet = None # reviewer workbook info
         self.cat_sheet = None # category workbook info
+        self.lab_sheet = None # category workbook info
 
         # window state
         self.state = None
@@ -36,45 +36,28 @@ class AMPCchair_data:
         #del self.cat_sheet
         del self.reviewers 
         del self.categories 
+        del self.labels
 
     def read_rev(self,fn='reviewer.xls'):
         '''read the spreadsheet data given the supplied Excel filename
         '''
         book = xlrd.open_workbook(fn)
         self.rev_sheet = book.sheets()[0] # only the first sheet
-        return(self.rev_sheet) # return ref to sheet
+        return self.rev_sheet # return ref to sheet
 
     def read_cat(self,fn='category.xls'):
         '''read the spreadsheet data given the supplied Excel filename
         '''
         book = xlrd.open_workbook(fn)
         self.cat_sheet = book.sheets()[0] # only the first sheet
-        return(self.cat_sheet) # return ref to sheet
+        return self.cat_sheet # return ref to sheet
 
-    def format_catlist(self,inlist):
-        '''take the input list, and enforce cell format
-           -all are strings, member numbers and category choices should
-            be changed to ints before strings
-           -category number (some are ints and others are alpha-numeric), col 0
-           -category name, col 1
-           -num abs, col 2
+    def read_lab(self,fn='label.xls'):
+        '''read the spreadsheet data given the supplied Excel filename
         '''
-        outlist = []
-        # category number
-        try:
-            outlist.append(str(int(float(inlist[0]))))
-        except:
-            outlist.append(str(inlist[0]))
-        # name
-        outlist.append(str(inlist[1]))
-        # num abstracts
-        outlist.append(str(int(float(inlist[2]))))
-        # add extra columns for # assigned revs, pool, and assigned revs if needed 
-        while len(outlist) < 6:
-            outlist.append(str(0))
-        # set keylist to a list
-        outlist[5] = []
-        return(outlist)
+        book = xlrd.open_workbook(fn)
+        self.lab_sheet = book.sheets()[0] # only the first sheet
+        return self.lab_sheet # return ref to sheet
 
     def format_revlist(self,inlist):
         '''take the input list, and enforce cell format
@@ -90,7 +73,7 @@ class AMPCchair_data:
         for i in range(1,12):
             
             # check all chars in each string
-            if type(inlist[i]) == str or type(inlist[i]) == unicode:
+            if type(inlist[i]) == bytes or type(inlist[i]) == str:
                 cell = []
                 for c in inlist[i]:
                     try:
@@ -117,17 +100,56 @@ class AMPCchair_data:
         outlist[18] = []
         return(outlist)
 
+    def format_catlist(self,inlist):
+        '''take the input list, and enforce cell format
+           -all are strings, member numbers and category choices should
+            be changed to ints before strings
+           -category number (some are ints and others are alpha-numeric), col 0
+           -category name, col 1
+           -num abs, col 2
+        '''
+        outlist = []
+        # category number
+        try:
+            outlist.append(str(int(float(inlist[0]))))
+        except:
+            outlist.append(str(inlist[0]))
+        # name
+        outlist.append(str(inlist[1]))
+        # num abstracts
+        outlist.append(str(int(float(inlist[2]))))
+        # add extra columns for # assigned revs, pool, and assigned revs if needed 
+        while len(outlist) < 6:
+            outlist.append(str(0))
+        # set keylist to a list
+        outlist[5] = []
+        return(outlist)
+
+    def format_lablist(self,inlist):
+        '''take the input list, and enforce cell format
+           -all are strings.
+        '''
+        # label
+        # submission category
+        # review category
+        outlist = []
+        for item in inlist:
+            text = str(item).strip() 
+            outlist.append(text)
+        return outlist
+
     def read(self,fn): #='abstassn.xls'):
         '''read both reviewer and category sheets from a single book
         '''
         try:
             book = xlrd.open_workbook(fn)
         except:
-            print 'ERROR: invalid xls file'
+            print('ERROR: invalid xls file')
             return 1
         sheets = book.sheets()
         self.rev_sheet = sheets[0] # only the first sheet
         self.cat_sheet = sheets[1] # only the second sheet
+        self.lab_sheet = sheets[2] # only the third sheet
 
         # REVIEWERS
         # make a dictionary for reviewers based on member number
@@ -138,7 +160,7 @@ class AMPCchair_data:
         self.reviewers = []
         bad_cnt = 0
         read_cnt = 0
-        for i in range(0,self.rev_sheet.nrows):
+        for i in range(1,self.rev_sheet.nrows):
             # filter out non-compliant rows
             try:
                 mem_info = self.format_revlist(self.rev_sheet.row_values(i))
@@ -147,11 +169,11 @@ class AMPCchair_data:
                 read_cnt += 1
             except:
                 bad_cnt += 1
-                print 'bad_cnt:'+str(bad_cnt)
-                print self.rev_sheet.row_values(i)
+                print('bad_cnt:'+str(bad_cnt))
+                print(self.rev_sheet.row_values(i))
                 #pass # just skip rows with no member number
-        print "REVIEWERS: read:"+str(read_cnt)
-        print "REVIEWERS: unreadable rows:"+str(bad_cnt)
+        print("REVIEWERS: read:"+str(read_cnt))
+        print("REVIEWERS: unreadable rows:"+str(bad_cnt))
         self.reviewers = dict(self.reviewers)
 
         # CATEGORIES
@@ -160,7 +182,7 @@ class AMPCchair_data:
         self.categories = []
         bad_cnt = 0
         read_cnt = 0
-        for i in range(0,self.cat_sheet.nrows): # drop last row
+        for i in range(1,self.cat_sheet.nrows):
             # filter out non-compliant rows
             try:
                 cur_row = self.format_catlist(self.cat_sheet.row_values(i))
@@ -182,18 +204,46 @@ class AMPCchair_data:
 
                     self.categories.append((cur_row[0],cur_row))
                     read_cnt += 1
-
                 else:
                     bad_cnt += 1
-                    print self.cat_sheet.row_values(i)
+                    print(self.cat_sheet.row_values(i))
 
             except:
                 # tally non-readable rows
                 bad_cnt += 1
-                print self.cat_sheet.row_values(i)
-        print "CATEGORIES: read:"+str(read_cnt)
-        print "CATEGORIES: unreadable/main-category rows:"+str(bad_cnt)
+                print(self.cat_sheet.row_values(i))
+        print("CATEGORIES: read:"+str(read_cnt))
+        print("CATEGORIES: unreadable/main-category rows:"+str(bad_cnt))
         self.categories = dict(self.categories)
+
+        # LABELS
+        # dictionary and number of labels
+        self.num_labels = 0
+        self.labels = []
+        bad_cnt = 0
+        read_cnt = 0
+        for i in range(1, self.lab_sheet.nrows): 
+            # filter out non-compliant rows
+            try:
+                cur_row = self.format_lablist(self.lab_sheet.row_values(i))
+
+                # Valid rows have three non-zero elements (label, submission category, review category)
+                # check that the rule applies
+                if len(cur_row) == 3:
+                    self.num_labels += 1
+                    self.labels.append((cur_row[0],cur_row))
+                    read_cnt += 1
+                else:
+                    bad_cnt += 1
+                    print(self.lab_sheet.row_values(i))
+
+            except:
+                # tally non-readable rows
+                bad_cnt += 1
+                print(self.lab_sheet.row_values(i))
+        print("LABELS: read:"+str(read_cnt))
+        print("LABELS: unreadable/main-label rows:"+str(bad_cnt))
+        self.labels = dict(self.labels)
 
 
         # calculate the number of reviewers for each cat
@@ -208,14 +258,14 @@ class AMPCchair_data:
            the correct number first.
         '''
         # for each reviewer
-        for k,v in self.reviewers.iteritems():
+        for k,v in self.reviewers.items():
             # for each choice
             for choice in v[12:17]:
                 # determine if choice is empty
                 if choice.isdigit():
                     # try the num, numA, and numB
                     # also add leading zeros, up to 2, 0 or 00
-                    choices = [choice,choice+'A',choice+'B']
+                    choices = [choice,choice+'A',choice+'B',choice+'C',choice+'D',choice+'E',choice+'F',choice+'G']
                     choices_00 = []
                     for c in choices:
                         choices_00.append(c)
@@ -387,7 +437,7 @@ class AMPCchair_data:
     def dict2List(self,dict_in):
         '''flatten dictionary elements to string elements in a list'''
         outlist = []
-        for v in dict_in.itervalues():
+        for v in dict_in.values():
             rowlist = []
             # ensure each element of a row is a string
             for i in v:
@@ -439,7 +489,7 @@ class AMPCchair_data:
         try:
             group = pickle.load(fileptr)
         except:
-            print 'ERROR: invalid pickle file'
+            print('ERROR: invalid pickle file')
             fileptr.close()
             return 1
 
@@ -449,8 +499,8 @@ class AMPCchair_data:
         # load data into class
         hdr = group[0]
         if hdr[0] == 'ISMRM AMPC Chair Session':
-            print 'valid ISMRM AMPC Chair Session found'
-            print '\t-file created with version '+str(hdr[1])
+            print('valid ISMRM AMPC Chair Session found')
+            print('\t-file created with version '+str(hdr[1]))
             self.reviewers  = group[1]
             self.categories = group[2]
             if group[0][2] == 'no state info':
@@ -458,10 +508,94 @@ class AMPCchair_data:
             else:
                 self.state = group[0][2] # window state
         else:
-            print "ERROR: the chosen file is not an ISMRM AMPC Chair session"
+            print("ERROR: the chosen file is not an ISMRM AMPC Chair session")
 
         return 0
 
+    def rev_candidates(self, max, cat, nr_choice, level):
 
+        # A reviewer is a candidate for the category if:
+        # (i) They have less than the minimal number required
+        # (ii) adding the category does not give them too many abstracts to review.
+        # (iii) they have chosen the category;
+        # (iv) they are not yet assigned to the category;
+ 
+        nr_cat_abstracts = cat[2]
+        assigned_revs = cat[5]
+        candidates = []
+        for revkey, rev in self.reviewers.items():
+            nr_rev_abstracts = rev[17]
+            if int(nr_rev_abstracts) + int(nr_cat_abstracts) <= max:
+                if self.found_match(rev[11 + nr_choice], cat, level):
+                    if revkey not in assigned_revs:
+                        candidates.append(revkey)
+        return candidates
+
+    def select_rev_reserves(self, revkeys, threshold):
+
+        if revkeys == []: return revkeys
+
+        reserves = []
+        for key in revkeys:
+            rev = self.reviewers[key]
+            nr_rev_abstracts = rev[17]
+            if int(nr_rev_abstracts) < threshold:
+                reserves.append(key)
+        return reserves
+
+    def prioritize_revs(self, revkeys):
+
+        if revkeys == []: return revkeys
+
+        # Build criteria for prioritisation
+        # Experience and nr abstracts already assigned
+        experience = []
+        nr_abstracts_assigned = []
+        for revkey in revkeys:
+            rev = self.reviewers[revkey]
+            experience.append(self.measure_experience(rev))
+            nr_abstracts_assigned.append(int(rev[17]))
+
+        # Sort according to priorities
+        # First by experience (more experience = prioritised)
+        # For those with equal experience, prioritise those with less abstracts
+        paired = zip(experience, nr_abstracts_assigned, revkeys)
+        paired_sorted = sorted(paired, key = lambda x: (-x[0], x[1]))
+        _, _ , revkeys = zip(*paired_sorted)
+        return revkeys
+
+    def measure_experience(self, rev):
+
+        journal_articles = rev[10]
+        if journal_articles == '0-5':
+            return 1
+        if journal_articles == '6-15':
+            return 2
+        if journal_articles == '>15':
+            return 3
+
+    def get_choice_label(self, choice):
+        """get the category label for a given reviewer choice"""
+
+        for key, cat in self.categories.items():
+            if int(choice) == int(key[:3]):
+                return cat[1]
+
+    def found_match(self, choice, cat, level):
+        """Check if the reviewer's choice matches the category 
+        at the level of label (0), submission category (1) or review category (2)."""
+
+        if level == 0:
+            rev_category = int(choice)
+            cat_category = int(cat[0][:3])
+        else:
+            rev_label = self.get_choice_label(choice)
+            cat_label = cat[1]
+            if rev_label is None: 
+                return False # if none of the abstracts carry the chosen label, it is not in the list
+            rev_category = self.labels[rev_label][level]
+            cat_category = self.labels[cat_label][level]
+
+        return rev_category == cat_category
 
 

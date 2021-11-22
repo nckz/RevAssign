@@ -21,7 +21,7 @@ import sys
 import time
 
 # Import Qt modules
-from PyQt4 import QtCore,QtGui
+from PyQt5 import QtCore,QtGui, QtWidgets
 
 # Import the compiled UI module
 from windowUi import Ui_MainWindow
@@ -31,9 +31,9 @@ import backend
 
 
 # correct the numeric sorting for specified columns of the category list
-class cat_TreeWidgetItem(QtGui.QTreeWidgetItem):
+class cat_TreeWidgetItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent)
 
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
@@ -71,9 +71,9 @@ class cat_TreeWidgetItem(QtGui.QTreeWidgetItem):
 
 
 # correct the numeric sorting for specified columns of the reviewer list
-class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
+class rev_TreeWidgetItem(QtWidgets.QTreeWidgetItem):
     def __init__(self, parent=None, parent_obj=None):
-        QtGui.QTreeWidgetItem.__init__(self, parent)
+        QtWidgets.QTreeWidgetItem.__init__(self, parent)
 
         # ref to parent class
         self.parent = parent_obj
@@ -81,9 +81,9 @@ class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
         # if contents passed then decorate for sorting
         self.dlist = []
         self.dlist.append(int(parent[0])) # member #
-        for i in xrange(1,12):
+        for i in range(1,12):
             self.dlist.append(str(parent[i]))
-        for i in xrange(12,18):
+        for i in range(12,18):
             self.dlist.append(int(parent[i]))
         self.dlist.append(str(parent[18]))
 
@@ -126,7 +126,7 @@ class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
         self.brush = self.background(1)
 
         #for col in self.colRange:
-        for col in xrange(0,self.totalCol):
+        for col in range(0,self.totalCol):
             self.setBackground(col,self.brush)
 
 
@@ -197,9 +197,9 @@ class rev_TreeWidgetItem(QtGui.QTreeWidgetItem):
             return self.text(column) < otherItem.text(column)
 
 # Create a class for our main window
-class Main(QtGui.QMainWindow):
+class Main(QtWidgets.QMainWindow):
     def __init__(self):
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         
         # This is always the same
         self.ui=Ui_MainWindow()
@@ -208,7 +208,7 @@ class Main(QtGui.QMainWindow):
         # initialize window title
         self.setWindowTitle('ISMRM AMPC Reviewer Assignments') 
         self.status = self.ui.statusbar # get handle
-        self.progress = QtGui.QProgressBar(self.statusBar())
+        self.progress = QtWidgets.QProgressBar(self.statusBar())
         self.status.addPermanentWidget(self.progress)
         self.hide_progress_bar()
 
@@ -228,9 +228,12 @@ class Main(QtGui.QMainWindow):
         self.rev_colorized = True
         self.cur_rev_sortIndicator = 0
         self.rev_header = self.ui.revlist.header()
-        self.rev_abs_warnThresh = 60
+        self.rev_abs_warnThresh = 56
+        self.cat_abs_warnThresh = 5
+        self.rev_minimum_nr_of_abstracts = 20
+        self.cat_maximum_nr_of_revs = 8
 
-        QtCore.QObject.connect(self.ui.revlist.header(), QtCore.SIGNAL("sortIndicatorChanged()"),self.revlist_header_sortIndicatorChanged)
+        self.ui.revlist.header().sortIndicatorChanged.connect(self.revlist_header_sortIndicatorChanged)
 
         # default column
         self.cur_rev_col = 1
@@ -267,7 +270,7 @@ class Main(QtGui.QMainWindow):
         self.disableListUpdates()
     
         # init the list widget for reviewer info
-        for k in self.chair.reviewers.iterkeys():
+        for k in self.chair.reviewers.keys():
 
             # create item from row info based on key
             item = self.createRevItem(k)
@@ -279,10 +282,10 @@ class Main(QtGui.QMainWindow):
             self.ui.revlist.addTopLevelItem(item)
 
         # select this one
-        self.ui.revlist.setItemSelected(item,1)
+        item.setSelected(1)
 
         # init the list widget for category info
-        for k in self.chair.categories.iterkeys():
+        for k in self.chair.categories.keys():
 
             # create item from row info
             item = self.createCatItem(k)
@@ -294,7 +297,7 @@ class Main(QtGui.QMainWindow):
             self.ui.catlist.addTopLevelItem(item)
 
         # select this one
-        self.ui.catlist.setItemSelected(item,1)
+        item.setSelected(1)
 
         # build list of cat-item references
         cur_item = self.ui.catlist.itemAt(0,0)
@@ -320,7 +323,7 @@ class Main(QtGui.QMainWindow):
         # select the first item
         cur_item = self.ui.catlist.itemAt(0,0)
         self.ui.catlist.setCurrentItem(cur_item)
-        self.ui.catlist.setItemSelected(cur_item,self.cur_cat_col)
+        cur_item.setSelected(self.cur_cat_col)
         # set the first item as cat_key
         self.setCurCatKey(str(cur_item.text(0)))
         self.disableCatItemChanged = True
@@ -354,7 +357,7 @@ class Main(QtGui.QMainWindow):
         # select top item
         cur_item = self.ui.revlist.itemAt(0,0)
         self.ui.revlist.setCurrentItem(cur_item)
-        self.ui.revlist.setItemSelected(cur_item,self.cur_rev_col)
+        cur_item.setSelected(self.cur_rev_col)
         self.cur_revkey = str(cur_item.text(0))
 
         # redraw new info to screen
@@ -380,7 +383,7 @@ class Main(QtGui.QMainWindow):
         self.update_status('clearing memory... (reviewers)')
         st = time.time()
         self.removeItemsFromList(self.ui.revlist,self.listItemsInTree(self.ui.revlist))
-        print "revlist removal time: "+str(time.time()-st)
+        print("revlist removal time: "+str(time.time()-st))
     
         self.enableListUpdates()
 
@@ -430,15 +433,15 @@ class Main(QtGui.QMainWindow):
         self.progress.show()
         self.progress.setRange(0, total)
         self.progress.setValue(cur)
-        QtGui.QApplication.processEvents() # allow gui to update
+        QtWidgets.QApplication.processEvents() # allow gui to update
 
     def update_status(self, mesg):
         self.status.showMessage(mesg)
-        QtGui.QApplication.processEvents() # allow gui to update
+        QtWidgets.QApplication.processEvents() # allow gui to update
 
     def hide_progress_bar(self):
         self.progress.hide()
-        QtGui.QApplication.processEvents() # allow gui to update
+        QtWidgets.QApplication.processEvents() # allow gui to update
 
     def setHlght_AbsOverload(self,item):
         '''change color to light red if reviewer is or will be over the limit
@@ -450,7 +453,7 @@ class Main(QtGui.QMainWindow):
         abs_total = float(self.chair.reviewers[item_key][17]) 
         if abs_total > self.rev_abs_warnThresh:
             col = 1
-            item.setBackgroundColor(col,item.hghlghtColor[6])
+            item.setBackground(col,item.hghlghtColor[6])
             item.setAllBrushes()
             item.cur_color = 6
             return
@@ -464,7 +467,7 @@ class Main(QtGui.QMainWindow):
             abs_total = float(self.chair.reviewers[item_key][17]) + float(self.chair.categories[self.cur_catkey][2])
             if abs_total > self.rev_abs_warnThresh:
                 col = 1
-                item.setBackgroundColor(col,item.hghlghtColor[6])
+                item.setBackground(col,item.hghlghtColor[6])
                 item.setAllBrushes()
                 item.cur_color = 6
             
@@ -478,7 +481,7 @@ class Main(QtGui.QMainWindow):
             #for col in item.colRange:
             col = 1 
             #for col in item.colRange:
-            item.setBackgroundColor(col,item.hghlghtColor[item.new_color])
+            item.setBackground(col,item.hghlghtColor[item.new_color])
             #item.brush.setColor(item.hghlghtColor[item.new_color])
             item.setAllBrushes()
             # set current color
@@ -494,7 +497,7 @@ class Main(QtGui.QMainWindow):
             # for each column, change the color 
             col = 1 
             #for col in item.colRange:
-            item.setBackgroundColor(col,item.hghlghtColor[item.new_color])
+            item.setBackground(col,item.hghlghtColor[item.new_color])
             #item.brush.setColor(item.hghlghtColor[item.new_color])
             item.setAllBrushes()
 
@@ -505,7 +508,7 @@ class Main(QtGui.QMainWindow):
         self.setHlght_AbsOverload(item)
 
     def removeItemsFromList(self,tree,inlist):
-        print 'itemcnt:'+str(tree.topLevelItemCount())
+        print('itemcnt:'+str(tree.topLevelItemCount()))
         cnt = tree.topLevelItemCount()
         tree.clear()
         #for i in range(0,cnt):
@@ -544,7 +547,7 @@ class Main(QtGui.QMainWindow):
         # only care if checkbox has changed
         if col == 0:
 
-            print "catlist changed"
+            print("catlist changed")
 
             # if it was unchecked, then re-check it
             if not cur.checkState(0):
@@ -599,17 +602,17 @@ class Main(QtGui.QMainWindow):
                     st = time.time()
                     self.update_status(self.sortMsg)
                     self.ui.revlist.sortItems(self.ui.revlist.header().sortIndicatorSection(),self.ui.revlist.header().sortIndicatorOrder())
-                    print "     -sort time: "+str(time.time()-st)
+                    print("     -sort time: "+str(time.time()-st))
 
                     # select first item 
                     #cur_item = self.ui.revlist.itemAt(0,0)
-                    #self.ui.revlist.setItemSelected(cur_item,self.ui.revlist.header().sortIndicatorSection())
+                    #cur_item.setSelected(self.ui.revlist.header().sortIndicatorSection())
                     #self.ui.revlist.setCurrentItem(cur_item)
 
                     # redraw color
                     st = time.time()
                     self.refreshItemColor_rev()
-                    print "     -re-color time: "+str(time.time()-st)
+                    print("     -re-color time: "+str(time.time()-st))
 
                 # allow update of display
                 #self.enableListUpdates()
@@ -622,7 +625,7 @@ class Main(QtGui.QMainWindow):
                 if len(items) > 0:
                     items[0].setSelected(False) #unselect
                 cur_item = self.ui.revlist.itemAt(0,0)
-                self.ui.revlist.setItemSelected(cur_item,self.ui.revlist.header().sortIndicatorSection())
+                cur_item.setSelected(self.ui.revlist.header().sortIndicatorSection())
                 self.ui.revlist.setCurrentItem(cur_item)
 
 
@@ -639,7 +642,7 @@ class Main(QtGui.QMainWindow):
                 self.cur_revkey = str(items[0].text(0))
 
     def revlist_header_sortIndicatorChanged(self):#,section=None,order=None):
-        print "revlist_header_sortIndicatorChanged triggered"
+        print("revlist_header_sortIndicatorChanged triggered")
         #print section
         #print order
 
@@ -661,11 +664,11 @@ class Main(QtGui.QMainWindow):
 
             # for debugging
             if str(cur.text(0)) == self.cur_revkey:
-                print "spacebar used to select or mouse on highlighted row"
+                print("spacebar used to select or mouse on highlighted row")
             else:
                 # shouldn't this always be the case?
                 self.cur_revkey = str(cur.text(0))
-                print "mouse checked non-highlighted row"
+                print("mouse checked non-highlighted row")
 
             # if it IS checked
             if cur.checkState(0):
@@ -674,21 +677,21 @@ class Main(QtGui.QMainWindow):
                 try:
                     self.chair.categories[self.cur_catkey]
                 except:
-                    print "ERROR: please choose a category"
+                    print("ERROR: please choose a category")
                     return
 
                 # test reviewer selection
                 try:
                     self.chair.reviewers[self.cur_revkey]
                 except:
-                    print "ERROR: please choose a reviewer"
+                    print("ERROR: please choose a reviewer")
                     return
 
-                print "item checked, col:"+str(col)
+                print("item checked, col:"+str(col))
                 self.chair.addRev(self.cur_revkey,self.cur_catkey)
 
             else:
-                print "item not checked, col:"+str(col)
+                print("item not checked, col:"+str(col))
                 self.chair.removeRev(self.cur_revkey,self.cur_catkey)
 
             # refresh row data
@@ -716,6 +719,11 @@ class Main(QtGui.QMainWindow):
             if item.text(0) == key:
                 return item
 
+    def getItemFromCatKey(self,key):
+        for item in self.cat_items:
+            if item.text(0) == key:
+                return item
+
     def refreshDisplay(self):
         '''update the new tallied items in each list
             i.e.:
@@ -733,10 +741,10 @@ class Main(QtGui.QMainWindow):
         item_r = self.cur_cat_item
         # set # of assigned reviewers
         item_r.setText(3,self.chair.categories[self.cur_catkey][3])
-        print item_r.text(3)
+        print(item_r.text(3))
         # assigned reviewers
         item_r.setText(5,str(self.chair.categories[self.cur_catkey][5]))
-        print item_r.text(5)
+        print(item_r.text(5))
 
         # display rev
         #item_c = self.ui.revlist.selectedItems()[0]
@@ -744,11 +752,11 @@ class Main(QtGui.QMainWindow):
         # set # of assigned reviewers
         item_c.setText(17,self.chair.reviewers[self.cur_revkey][17])
         item_c.dlist[17] = int(self.chair.reviewers[self.cur_revkey][17])
-        print item_c.text(17)
+        print(item_c.text(17))
         # assigned reviewers
         item_c.setText(18,str(self.chair.reviewers[self.cur_revkey][18]))
         item_c.dlist[18] = str(self.chair.reviewers[self.cur_revkey][18])
-        print item_c.text(18)
+        print(item_c.text(18))
 
         # update color after tables have been modified
         self.toggleColor(item_c)
@@ -757,17 +765,111 @@ class Main(QtGui.QMainWindow):
         #self.enableListUpdates()
         self.disableRevItemChanged = False
 
+
+    def refreshDisplayAllRows(self):
+        '''update all items in each list
+            i.e.:
+            -number of abstracts
+            -number of revs in this category
+        '''
+
+        # disable update of display
+        self.disableRevItemChanged = True
+
+        # display cat
+        i = 0
+        cnt = len(self.chair.categories)
+        for key, cat in self.chair.categories.items():
+            self.update_progress(i, cnt)
+            item_r = self.getItemFromCatKey(key)
+            # set # of assigned reviewers
+            item_r.setText(3, cat[3])
+            # assigned reviewers
+            item_r.setText(5, str(cat[5]))
+            i += 1
+
+        # display rev
+        i = 0
+        cnt = len(self.chair.reviewers)
+        for key, rev in self.chair.reviewers.items():
+            self.update_progress(i, cnt)
+            item_c = self.getItemFromRevKey(key) 
+            # set # of assigned reviewers
+            item_c.setText(17, rev[17])
+            item_c.dlist[17] = int(rev[17])
+            # assigned reviewers
+            item_c.setText(18,str(rev[18]))
+            item_c.dlist[18] = str(rev[18])
+            # update color after tables have been modified
+            self.toggleColor(item_c)
+            i += 1
+
+        self.hide_progress_bar()
+
+        # allow update of display
+        self.disableRevItemChanged = False
+
     def on_actionAbstractLimit_triggered(self,checked=None):
         # this always has to be checked for triggered actions
         # to keep from running double actions
         if checked is None: return
 
-        text, ok = QtGui.QInputDialog.getText(self, 'Reviewer Abstract Warning Limit', 'Enter Limit (Cur:'+str(int(self.rev_abs_warnThresh))+'):')
+        text, ok = QtWidgets.QInputDialog.getText(self, 
+            'Maximum abstracts per reviewer', 
+            'Maximum abstracts per reviewer (Currently: '+str(int(self.rev_abs_warnThresh))+'):')
         if ok:
             if str(text).isdigit():
                 self.ui.revlist.setDisabled(True)
                 self.rev_abs_warnThresh = float(text)
-                print "rev_abs_warnThresh set to: "+str(self.rev_abs_warnThresh)
+                print("rev_abs_warnThresh set to: "+str(self.rev_abs_warnThresh))
+                self.refreshItemColor_rev()
+                self.ui.revlist.setDisabled(False)
+
+    def on_actionAbstractLowerLimit_triggered(self,checked=None):
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        text, ok = QtWidgets.QInputDialog.getText(self, 
+            'Minimum abstracts per reviewer', 
+            'Minimum abstracts per reviewer (Currently: '+str(int(self.rev_minimum_nr_of_abstracts))+'):')
+        if ok:
+            if str(text).isdigit():
+                self.ui.revlist.setDisabled(True)
+                self.rev_minimum_nr_of_abstracts = float(text)
+                print("rev_minimum_nr_of_abstracts set to: "+str(self.rev_minimum_nr_of_abstracts))
+                self.refreshItemColor_rev()
+                self.ui.revlist.setDisabled(False)
+
+    def on_actionReviewerLimit_triggered(self,checked=None):
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        text, ok = QtWidgets.QInputDialog.getText(self, 
+            'Minimum reviewers per abstract', 
+            'Minimum reviewers per abstract (Currently: '+str(int(self.cat_abs_warnThresh))+'):')
+        if ok:
+            if str(text).isdigit():
+                self.ui.revlist.setDisabled(True)
+                self.cat_abs_warnThresh = float(text)
+                print("cat_abs_warnThresh set to: "+str(self.cat_abs_warnThresh))
+                self.refreshItemColor_rev()
+                self.ui.revlist.setDisabled(False)
+
+    def on_actionReviewerUpperLimit_triggered(self,checked=None):
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        text, ok = QtWidgets.QInputDialog.getText(self, 
+            'Maximum reviewers per abstract', 
+            'Maximum reviewers per abstract (Currently: '+str(int(self.cat_maximum_nr_of_revs))+'):')
+        if ok:
+            if str(text).isdigit():
+                self.ui.revlist.setDisabled(True)
+                self.cat_maximum_nr_of_revs = float(text)
+                print("cat_maximum_nr_of_revs set to: "+str(self.cat_maximum_nr_of_revs))
                 self.refreshItemColor_rev()
                 self.ui.revlist.setDisabled(False)
 
@@ -818,12 +920,12 @@ class Main(QtGui.QMainWindow):
 
         # check if session is already active
         if not self.sessionActive:
-            print "ERROR: no active session to save"
+            print("ERROR: no active session to save")
             return
 
         # open file browser
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save Session (*.mpc)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.mpc)')
-        print fname
+        fname, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Session (*.mpc)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.mpc)')
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:
@@ -844,12 +946,12 @@ class Main(QtGui.QMainWindow):
 
         # check if session is already active
         if not self.sessionActive:
-            print "ERROR: no active session to export"
+            print("ERROR: no active session to export")
             return
 
         # open file browser
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Export Session (*.xls)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.xls)')
-        print fname
+        fname, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Export Session (*.xls)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.xls)')
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:
@@ -864,8 +966,8 @@ class Main(QtGui.QMainWindow):
         if checked is None: return
 
         # open file browser
-        fname = QtGui.QFileDialog().getOpenFileName(self, 'Open Session (*.mpc)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.mpc)')
-        print fname
+        fname, _ = QtWidgets.QFileDialog().getOpenFileName(self, 'Open Session (*.mpc)', os.path.expanduser('~/'), filter='AMPC Chair Session (*.mpc)')
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:
@@ -885,10 +987,10 @@ class Main(QtGui.QMainWindow):
 
         # resize window to saved state
         if self.chair.state:
-            print "restore mainwindow state:"
-            print self.restoreGeometry(self.chair.state[0])
-            print "restore splitter state:"
-            print self.ui.splitter.restoreState(self.chair.state[1])
+            print("restore mainwindow state:")
+            print(self.restoreGeometry(self.chair.state[0]))
+            print("restore splitter state:")
+            print(self.ui.splitter.restoreState(self.chair.state[1]))
 
         # load display
         self.loadItems()
@@ -903,8 +1005,8 @@ class Main(QtGui.QMainWindow):
         if checked is None: return
 
         # open file browser
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open Spreadsheet (*.xls)',os.path.expanduser('~/'), filter='AMPC Chair Session (*.xls)')
-        print fname
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Spreadsheet (*.xls)',os.path.expanduser('~/'), filter='AMPC Chair Session (*.xls)')
+        print(fname)
 
         # check for empty strings, if canceled
         if not fname:
@@ -929,7 +1031,180 @@ class Main(QtGui.QMainWindow):
         self.sessionActive = True
 
     def on_actionQuit_triggered(self):
-        QtGui.QApplication.closeAllWindows()
+        QtWidgets.QApplication.closeAllWindows()
+
+    def on_actionAssign_triggered(self,checked=None):
+        """Assign based on all choices.""" 
+
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        # Assign all reviewers until the minimum per category is reached
+        self.on_actionAssignAllReviewers_triggered(checked=checked)
+        self.on_actionAssignReserves_triggered(checked=checked)
+
+    def on_actionAssignAllReviewers_triggered(self,checked=None):
+        """Assign based on all choices.""" 
+
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        # Assign all reviewers until the minimum per category is reached
+        min_required = self.cat_abs_warnThresh
+        for req in range(int(min_required)):
+            self.cat_abs_warnThresh = 1+req
+            for level in [0,2,1]:
+                for choice in range(5):
+                    self.assignByLabel(1+choice, level)
+        self.cat_abs_warnThresh = min_required
+
+        self.update_status('Finished assigning reviewers')
+
+    def on_actionAssignReserves_triggered(self,checked=None):
+        """Assign based on all choices.""" 
+
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        # Assign reserves until the maximum per category is reached
+        min_required = self.cat_abs_warnThresh
+        max_required = self.cat_maximum_nr_of_revs
+        for req in range(int(max_required)):
+            self.cat_abs_warnThresh = 1+req
+            for level in [0,2,1]:
+                for choice in range(5):
+                    self.assignByLabel(1+choice, level, assign_reserves=True)
+        self.cat_abs_warnThresh = min_required
+
+        self.update_status('Finished assigning reviewers')
+
+    def on_actionClearAssignments_triggered(self,checked=None):
+        """Clear all assignments.""" 
+
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+        
+        for it in range(4): # Hack - needs to be done 4 times for some reason
+            i = 0
+            cnt = len(self.chair.categories)
+            for catkey, cat in self.chair.categories.items():
+                self.update_progress(i, cnt)    
+                assigned_revs = cat[5] 
+                for revkey in assigned_revs:
+                    self.chair.removeRev(revkey, catkey)
+                i += 1
+        self.hide_progress_bar()
+
+        # refresh row data
+        self.refreshDisplayAllRows()
+
+    def on_actionAssignAllLabels_triggered(self,checked=None):
+        """Assign based on all choices.""" 
+
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        for choice in range(5):
+            self.assignByLabel(1+choice, 0)
+
+    def on_actionAssignAllReviewCategories_triggered(self,checked=None):
+        """Assign based on review categories of all choices.""" 
+
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        for choice in range(5):
+            self.assignByLabel(1+choice, 2)
+
+    def on_actionAssignAllSubmissionCategories_triggered(self,checked=None):
+        """Assign based on review categories of all choices.""" 
+
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        for choice in range(5):
+            self.assignByLabel(1+choice, 1)
+
+    def on_actionAssignFirst_triggered(self,checked=None):
+        if checked is None: return
+
+        self.assignByLabel(1, 0)
+
+    def on_actionAssignSecond_triggered(self,checked=None):
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        self.assignByLabel(2, 0)
+
+    def on_actionAssignThird_triggered(self,checked=None):
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        self.assignByLabel(3, 0)
+
+    def on_actionAssignFourth_triggered(self,checked=None):
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        self.assignByLabel(4, 0)
+
+    def on_actionAssignFifth_triggered(self,checked=None):
+        # this always has to be checked for triggered actions
+        # to keep from running double actions
+        if checked is None: return
+
+        self.assignByLabel(5, 0)
+
+    def assignByLabel(self, nr_choice, level, assign_reserves=False):
+
+        intro = 'Assigning reviewer '+ str(self.cat_abs_warnThresh)
+        if level == 0:
+            self.update_status(intro + ' by label ' + str(nr_choice) )
+        elif level == 1:
+            self.update_status(intro + ' by submission category ' + str(nr_choice) )
+        elif level == 2:
+            self.update_status(intro + ' by review category ' + str(nr_choice) )
+
+        # Check each of the categories
+        # If the category needs more reviewers, get candidate reviewers
+        # Assign candidate reviewers in order of priority
+        # Until the category has the maximum nr of reviewers.
+
+        i = 0
+        cnt = len(self.chair.categories)
+        cat_updated = False
+        for catkey, cat in self.chair.categories.items():
+            self.update_progress(i, cnt)
+            nr_assigned_revs = len(cat[5])
+            if nr_assigned_revs < self.cat_abs_warnThresh:
+                revkeys = self.chair.rev_candidates(
+                    self.rev_abs_warnThresh,
+                    cat, nr_choice, level)
+                if assign_reserves:
+                    revkeys = self.chair.select_rev_reserves(revkeys, 
+                        self.rev_minimum_nr_of_abstracts)
+                revkeys = self.chair.prioritize_revs(revkeys)
+                for revkey in revkeys:
+                    self.chair.addRev(revkey, catkey)
+                    nr_assigned_revs += 1
+                    cat_updated = True
+                    if nr_assigned_revs == self.cat_abs_warnThresh: 
+                        break # go to the next category
+            i += 1
+        self.hide_progress_bar()
+
+        # refresh row data
+        if cat_updated: self.refreshDisplayAllRows()
 
     def on_actionAbout_triggered(self,checked=None):
         if checked is None: return
@@ -937,11 +1212,11 @@ class Main(QtGui.QMainWindow):
             "\tAuthors: "+str(', '.join(__authors__))+"\n" \
             "\tDate: "+str(__date__)+"\n\n" \
             "URL: https://github.com/nckz/RevAssign#revassign"
-        mb = QtGui.QMessageBox.about(self, "About RevAssign", msg)
+        mb = QtWidgets.QMessageBox.about(self, "About RevAssign", msg)
              
     def on_actionWorkflow_triggered(self,checked=None):
         if checked is None: return
-        mb = QtGui.QMessageBox()
+        mb = QtWidgets.QMessageBox()
         mb.setSizeGripEnabled(True) 
         mb.about(self,"Help", \
             "The ISMRM AMPC Chair interface is designed to help the chairperson assign reviewers to categories based on the reviewer's preferences, qualifications, publications, etc...  "+ \
@@ -954,13 +1229,14 @@ class Main(QtGui.QMainWindow):
             "-the specific column labels are not important, the first header-row is skipped and the last abstract total row is skipped, categories may only be split into two (i.e. A & B).\n\n"+ \
             "A session simply consists of assigning reviewers to each category using the check boxes and the sorting capabilities embedded in each column header.  "+ \
             "The headers and spreadsheet panes can be resized.  The columns can also be moved left or right.  "+ \
+            "Since 2022, an automatic pre-assignment feature is available via the Assign menu which also requires a 3d sheet with labels and review/submission categories.  "+ \
             "If needed, the session can be saved and resumed later by saving to a .mpc file using the save session dialog.  "+ \
             "After all categories have been assigned, the final data are exported (via the Export dialog) back to an Excel spreadsheet with similar format to the input.")
 
 def main():
     # Again, this is boilerplate, it's going to be the same on 
     # almost every app you write
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window=Main()
     window.show()
     window.raise_()
