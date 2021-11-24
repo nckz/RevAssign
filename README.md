@@ -25,18 +25,24 @@ white.  Each category is selected in the panel on the left.
 
 # Controls
 The user can navigate between panels using the Tab key and select categories
-and reviewers using the space bar.  These can also be navigated with the mouse.
+and reviewers using the space bar. These can also be navigated with the mouse.
 
 Each column can be sorted alphabetically or numerically (depending on its
 content). The columns can also be positioned to the user's tastes.
+
+#Auto-Assign
+In 2022 an "Assign" menu was added to automatically pre-assign reviewers to categories. In order to use this feature, first set maximum and minimum nr of reviewers and abstracts in the "Settings" menu, then hit "Assign" in the Assign menu. 
+
+If the parameter settings are incompatible, review the settings and hit "Assign" again. The individual steps in the assignments can also be repeated with the other buttons in the Assign menu. After auto-assigning, you can edit assignments manually as before.
+
+#Input data
+For RevAssign to work, it is important that the input data are formatted correctly. Please see the rev_input.xls files in the example_data folder as an example.
 
 Sessions can be saved as a `.mpc` file and later exported to a final `.xls`
 spreadsheet to start the next process in the AMPC work flow.
 
 # Install
-The latest app for OS X can be found in [Releases](https://github.com/nckz/RevAssign/releases).
-
-Alternatively, RevAssign can be installed in Anaconda by running:
+RevAssign can be installed in Anaconda by running:
 
     $ conda install -c https://conda.anaconda.org/nckz revassign
 
