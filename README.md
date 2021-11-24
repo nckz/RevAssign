@@ -30,22 +30,46 @@ and reviewers using the space bar. These can also be navigated with the mouse.
 Each column can be sorted alphabetically or numerically (depending on its
 content). The columns can also be positioned to the user's tastes.
 
-#Auto-Assign
+# Auto-Assign
 In 2022 an "Assign" menu was added to automatically pre-assign reviewers to categories. In order to use this feature, first set maximum and minimum nr of reviewers and abstracts in the "Settings" menu, then hit "Assign" in the Assign menu. 
 
 If the parameter settings are incompatible, review the settings and hit "Assign" again. The individual steps in the assignments can also be repeated with the other buttons in the Assign menu. After auto-assigning, you can edit assignments manually as before.
 
-#Input data
+# Input data
 For RevAssign to work, it is important that the input data are formatted correctly. Please see the rev_input.xls files in the example_data folder as an example.
 
 Sessions can be saved as a `.mpc` file and later exported to a final `.xls`
 spreadsheet to start the next process in the AMPC work flow.
 
-# Install
-RevAssign can be installed in Anaconda by running:
+# Installation
+RevAssign can be installed and run from an Anaconda platform.
 
-    $ conda install -c https://conda.anaconda.org/nckz revassign
+## Install Anaconda
+Download the miniconda installer from: https://docs.conda.io/en/latest/miniconda.html
 
-And then run with:
+```bash
+chmod a+x Miniconda*.sh
+./Miniconda*.sh  # follow install instructions
+```
 
-    $ revassign
+## Install Python Tools
+With miniconda installed, use the 'conda' command to install the dependencies:
+
+```bash
+conda install pyqt xlrd xlwt
+```
+
+## Clone the Code
+Clone the latest RevAssign commit with:
+
+```bash
+git clone https://github.com/nckz/RevAssign.git
+```
+
+## Run It
+Start RevAssign from the root project directory:
+
+```bash
+cd RevAssign
+python3 ./RevAssign.py
+```
